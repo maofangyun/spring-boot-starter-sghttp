@@ -1,0 +1,77 @@
+plugins {
+    id 'java'
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = 'com.seago'
+version = '1.0.0-SNAPSHOT'
+
+ext {
+    springbootVersion = '3.0.5'
+}
+
+java {
+    sourceCompatibility = '17'
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+// 定义源代码目录结构
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+    }
+}
+
+// 创建一个 source JAR 任务
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier.set('sources')
+}
+
+// 将 source JAR 任务添加到 build 任务的依赖中
+build.dependsOn(sourceJar)
+build.dependsOn(assemble)
+
+description = 'spring-boot-starter-sghttp'
+
+// 配置发布任务
+publishing {
+    repositories {
+        mavenLocal() // 将构建结果发布到本地 Maven 仓库
+    }
+
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            groupId = this.group
+            artifactId = this.description
+            version = this.version
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web:'+springbootVersion
+    implementation 'org.springframework.boot:spring-boot-starter-webflux:'+springbootVersion
+    implementation 'org.springframework.cloud:spring-cloud-commons:4.0.2'
+    implementation 'org.glassfish.jersey.containers:jersey-container-grizzly2-http:3.1.0'
+
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:'+springbootVersion
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
